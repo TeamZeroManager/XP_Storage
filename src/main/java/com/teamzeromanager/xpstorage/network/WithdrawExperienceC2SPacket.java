@@ -59,7 +59,7 @@ public class WithdrawExperienceC2SPacket {
                 return;
             }
 
-            player.giveExperiencePoints((int) cost);
+            XpCapsuleBlockEntity.grantExperiencePointsExactly(player, (int) cost);
             player.displayClientMessage(
                     Component.literal("Retiraste " + packet.levels + " niveles (" + cost + " puntos de XP)."),
                     true);
