@@ -2,10 +2,10 @@
   "parent": "minecraft:block/block",
   "ambientocclusion": true,
   "textures": {
-    "particle": "minecraft:block/iron_block",
-    "metal": "minecraft:block/iron_block",
+    "particle": "minecraft:block/quartz_block_side",
+    "metal": "minecraft:block/quartz_block_side",
     "trim": "minecraft:block/copper_block",
-    "glass": "minecraft:block/light_blue_stained_glass",
+    "glass": "minecraft:block/glass",
     "fluid": "minecraft:block/lime_concrete",
     "glow": "minecraft:block/sea_lantern"
   },
