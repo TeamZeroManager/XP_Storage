@@ -8,12 +8,17 @@ import net.minecraft.network.protocol.game.ClientboundSetExperiencePacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
@@ -21,15 +26,71 @@ import java.text.NumberFormat;
 import java.util.Locale;
 
 public class XpCapsuleBlock extends BaseEntityBlock {
-    public XpCapsuleBlock(Properties properties) { super(properties); }
+    public static final IntegerProperty SECTION = IntegerProperty.create("section", 0, 2);
+
+    public XpCapsuleBlock(Properties properties) {
+        super(properties);
+        registerDefaultState(stateDefinition.any().setValue(SECTION, 0));
+    }
 
     @Override
-    public RenderShape getRenderShape(BlockState state) { return RenderShape.MODEL; }
+    protected void createBlockStateDefinition(StateDefinition.Builder<net.minecraft.world.level.block.Block, BlockState> builder) {
+        builder.add(SECTION);
+    }
+
+    @Override
+    public RenderShape getRenderShape(BlockState state) {
+        return RenderShape.MODEL;
+    }
 
     @Nullable
     @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-        return new XpCapsuleBlockEntity(pos, state);
+        return state.getValue(SECTION) == 0 ? new XpCapsuleBlockEntity(pos, state) : null;
+    }
+
+    @Nullable
+    @Override
+    public BlockState getStateForPlacement(BlockPlaceContext context) {
+        BlockPos basePos = context.getClickedPos();
+        Level level = context.getLevel();
+
+        // Reserve all three blocks before allowing placement.
+        for (int section = 0; section < 3; section++) {
+            if (!level.getBlockState(basePos.above(section)).canBeReplaced(context)) {
+                return null;
+            }
+        }
+        return defaultBlockState().setValue(SECTION, 0);
+    }
+
+    @Override
+    public void setPlacedBy(Level level, BlockPos pos, BlockState state,
+                            @Nullable LivingEntity placer, ItemStack stack) {
+        super.setPlacedBy(level, pos, state, placer, stack);
+        if (level.isClientSide) return;
+
+        for (int section = 1; section < 3; section++) {
+            level.setBlock(pos.above(section), defaultBlockState().setValue(SECTION, section), 3);
+        }
+    }
+
+    @Override
+    public void onRemove(BlockState state, Level level, BlockPos pos,
+                         BlockState newState, boolean isMoving) {
+        if (!state.is(newState.getBlock()) && !level.isClientSide) {
+            int currentSection = state.getValue(SECTION);
+            BlockPos basePos = pos.below(currentSection);
+
+            // Removing any section dismantles the complete three-block machine.
+            for (int section = 0; section < 3; section++) {
+                BlockPos partPos = basePos.above(section);
+                if (!partPos.equals(pos) && level.getBlockState(partPos).is(this)) {
+                    level.removeBlock(partPos, false);
+                }
+            }
+        }
+        super.onRemove(state, level, pos, newState, isMoving);
     }
 
     @Override
@@ -38,10 +99,11 @@ public class XpCapsuleBlock extends BaseEntityBlock {
         if (level.isClientSide) return InteractionResult.SUCCESS;
         if (!(player instanceof ServerPlayer serverPlayer)) return InteractionResult.PASS;
 
-        if (level.getBlockEntity(pos) instanceof XpCapsuleBlockEntity capsule) {
+        BlockPos basePos = pos.below(state.getValue(SECTION));
+        if (level.getBlockEntity(basePos) instanceof XpCapsuleBlockEntity capsule) {
             // Sneak + right-click opens the integrated terminal. Normal right-click deposits XP.
             if (serverPlayer.isShiftKeyDown()) {
-                ModMessages.openCapsuleScreen(serverPlayer, pos, capsule.getStoredExperience());
+                ModMessages.openCapsuleScreen(serverPlayer, basePos, capsule.getStoredExperience());
                 return InteractionResult.CONSUME;
             }
 
