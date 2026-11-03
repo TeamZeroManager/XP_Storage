@@ -3,6 +3,7 @@ package com.teamzeromanager.xpstorage.block;
 import com.teamzeromanager.xpstorage.block.entity.XpCapsuleBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.game.ClientboundSetExperiencePacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -34,6 +35,7 @@ public class XpCapsuleBlock extends BaseEntityBlock {
             serverPlayer.experienceLevel = 0;
             serverPlayer.experienceProgress = 0.0F;
             serverPlayer.totalExperience = 0;
+            serverPlayer.connection.send(new ClientboundSetExperiencePacket(0.0F, 0, 0));
             serverPlayer.displayClientMessage(Component.literal("Experiencia almacenada: " + points + " puntos."), true);
             return InteractionResult.CONSUME;
         }
