@@ -1,6 +1,7 @@
 package com.teamzeromanager.xpstorage.block;
 
 import com.teamzeromanager.xpstorage.block.entity.XpCapsuleBlockEntity;
+import com.teamzeromanager.xpstorage.network.ModMessages;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundSetExperiencePacket;
@@ -38,20 +39,16 @@ public class XpCapsuleBlock extends BaseEntityBlock {
         if (!(player instanceof ServerPlayer serverPlayer)) return InteractionResult.PASS;
 
         if (level.getBlockEntity(pos) instanceof XpCapsuleBlockEntity capsule) {
+            // Sneak + right-click opens the integrated terminal. Normal right-click deposits XP.
             if (serverPlayer.isShiftKeyDown()) {
-                String stored = NumberFormat.getIntegerInstance(Locale.US)
-                        .format(capsule.getStoredExperience());
-                serverPlayer.displayClientMessage(
-                        Component.literal("XP almacenada en la cápsula: " + stored + " puntos."),
-                        true
-                );
+                ModMessages.openCapsuleScreen(serverPlayer, pos, capsule.getStoredExperience());
                 return InteractionResult.CONSUME;
             }
 
             long points = XpCapsuleBlockEntity.getPlayerExperiencePoints(serverPlayer);
             if (points <= 0L) {
                 serverPlayer.displayClientMessage(
-                        Component.literal("No tienes experiencia para almacenar. Agáchate y haz clic derecho para consultar la cápsula."),
+                        Component.literal("No tienes experiencia para almacenar. Agáchate y haz clic derecho para abrir la computadora."),
                         true
                 );
                 return InteractionResult.CONSUME;
