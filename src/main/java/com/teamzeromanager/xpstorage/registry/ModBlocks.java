@@ -3,10 +3,12 @@ package com.teamzeromanager.xpstorage.registry;
 import com.teamzeromanager.xpstorage.XPStorage;
 import com.teamzeromanager.xpstorage.block.XpCapsuleBlock;
 import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
+import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -22,5 +24,15 @@ public class ModBlocks {
     public static final RegistryObject<net.minecraft.world.item.Item> XP_CAPSULE_ITEM = ITEMS.register("xp_capsule",
             () -> new BlockItem(XP_CAPSULE.get(), new net.minecraft.world.item.Item.Properties()));
 
-    public static void register(IEventBus eventBus) { BLOCKS.register(eventBus); ITEMS.register(eventBus); }
+    public static void register(IEventBus eventBus) {
+        BLOCKS.register(eventBus);
+        ITEMS.register(eventBus);
+        eventBus.addListener(ModBlocks::addCreative);
+    }
+
+    private static void addCreative(BuildCreativeModeTabContentsEvent event) {
+        if (event.getTabKey() == CreativeModeTabs.FUNCTIONAL_BLOCKS) {
+            event.accept(XP_CAPSULE_ITEM);
+        }
+    }
 }
