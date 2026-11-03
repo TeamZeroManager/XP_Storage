@@ -3,6 +3,8 @@ package com.teamzeromanager.xpstorage.block.entity;
 import com.teamzeromanager.xpstorage.registry.ModBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.protocol.game.ClientboundSetExperiencePacket;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -59,10 +61,6 @@ public class XpCapsuleBlockEntity extends BlockEntity {
         return Math.max(0L, base + partial);
     }
 
-    /**
-     * XP points required to advance the player by the requested number of whole levels.
-     * Existing progress in the current XP bar is deducted from the cost.
-     */
     public static long getCostForLevels(Player player, int levels) {
         if (levels <= 0) return 0L;
         int currentLevel = Math.max(0, player.experienceLevel);
@@ -75,6 +73,32 @@ public class XpCapsuleBlockEntity extends BlockEntity {
         return Math.max(0L, targetBase - currentBase - partial);
     }
 
+    /**
+     * Applies an exact amount of XP by deriving the resulting level and bar progress
+     * from the total point count. This avoids float accumulation in giveExperiencePoints
+     * leaving the player one level short at exact level boundaries.
+     */
+    public static void grantExperiencePointsExactly(ServerPlayer player, int points) {
+        if (points <= 0) return;
+
+        long currentPoints = getPlayerExperiencePoints(player);
+        long targetPoints = currentPoints > Long.MAX_VALUE - points
+                ? Long.MAX_VALUE : currentPoints + points;
+
+        int newLevel = getEquivalentLevel(targetPoints);
+        long pointsIntoLevel = Math.max(0L, targetPoints - getXpForLevel(newLevel));
+        player.experienceLevel = newLevel;
+        player.experienceProgress = Math.min(0.999999F,
+                (float) pointsIntoLevel / (float) player.getXpNeededForNextLevel());
+
+        long updatedLifetimeTotal = (long) player.totalExperience + points;
+        player.totalExperience = (int) Math.min(Integer.MAX_VALUE,
+                Math.max(0L, updatedLifetimeTotal));
+
+        player.connection.send(new ClientboundSetExperiencePacket(
+                player.experienceProgress, player.totalExperience, player.experienceLevel));
+    }
+
     public static int getMaxWithdrawableLevels(Player player, long availablePoints) {
         if (availablePoints <= 0L) return 0;
         int currentLevel = Math.max(0, player.experienceLevel);
@@ -82,8 +106,6 @@ public class XpCapsuleBlockEntity extends BlockEntity {
         upperBound = Math.min(upperBound, 100000);
         int low = 0;
         int high = upperBound;
-
-        // Vanilla's player XP API accepts an int, so one withdrawal is capped safely.
         long budget = Math.min(availablePoints, (long) Integer.MAX_VALUE);
         while (low < high) {
             int mid = low + (high - low + 1) / 2;
