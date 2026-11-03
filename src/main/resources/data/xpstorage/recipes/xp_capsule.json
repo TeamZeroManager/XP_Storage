@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "IGI",
+    "RAR",
+    "ICI"
+  ],
+  "key": {
+    "I": { "item": "minecraft:iron_ingot" },
+    "G": { "item": "minecraft:glass" },
+    "R": { "item": "minecraft:redstone" },
+    "A": { "item": "minecraft:amethyst_shard" },
+    "C": { "item": "minecraft:copper_ingot" }
+  },
+  "result": {
+    "item": "xpstorage:xp_capsule",
+    "count": 1
+  }
+}
