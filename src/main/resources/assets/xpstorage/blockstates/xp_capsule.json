@@ -1,1 +1,7 @@
-{ "variants": { "": { "model": "xpstorage:block/xp_capsule" } } }
+{
+  "variants": {
+    "section=0": { "model": "xpstorage:block/xp_capsule" },
+    "section=1": { "model": "xpstorage:block/xp_capsule" },
+    "section=2": { "model": "xpstorage:block/xp_capsule" }
+  }
+}
