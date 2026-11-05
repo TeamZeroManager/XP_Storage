@@ -26,7 +26,7 @@ import java.text.NumberFormat;
 import java.util.Locale;
 
 public class XpCapsuleBlock extends BaseEntityBlock {
-    public static final IntegerProperty SECTION = IntegerProperty.create("section", 0, 2);
+    public static final IntegerProperty SECTION = IntegerProperty.create("section", 0, 1);
 
     public XpCapsuleBlock(Properties properties) {
         super(properties);
@@ -55,8 +55,8 @@ public class XpCapsuleBlock extends BaseEntityBlock {
         BlockPos basePos = context.getClickedPos();
         Level level = context.getLevel();
 
-        // Reserve all three blocks before allowing placement.
-        for (int section = 0; section < 3; section++) {
+        // Reserve both blocks before allowing placement.
+        for (int section = 0; section < 2; section++) {
             if (!level.getBlockState(basePos.above(section)).canBeReplaced(context)) {
                 return null;
             }
@@ -82,7 +82,7 @@ public class XpCapsuleBlock extends BaseEntityBlock {
             int currentSection = state.getValue(SECTION);
             BlockPos basePos = pos.below(currentSection);
 
-            // Removing any section dismantles the complete three-block machine.
+            // Removing either section dismantles the complete two-block machine.
             for (int section = 0; section < 3; section++) {
                 BlockPos partPos = basePos.above(section);
                 if (!partPos.equals(pos) && level.getBlockState(partPos).is(this)) {
