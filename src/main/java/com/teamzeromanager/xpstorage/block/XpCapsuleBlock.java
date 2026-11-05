@@ -70,7 +70,7 @@ public class XpCapsuleBlock extends BaseEntityBlock {
         super.setPlacedBy(level, pos, state, placer, stack);
         if (level.isClientSide) return;
 
-        for (int section = 1; section < 3; section++) {
+        for (int section = 1; section < 2; section++) {
             level.setBlock(pos.above(section), defaultBlockState().setValue(SECTION, section), 3);
         }
     }
@@ -83,7 +83,7 @@ public class XpCapsuleBlock extends BaseEntityBlock {
             BlockPos basePos = pos.below(currentSection);
 
             // Removing either section dismantles the complete two-block machine.
-            for (int section = 0; section < 3; section++) {
+            for (int section = 0; section < 2; section++) {
                 BlockPos partPos = basePos.above(section);
                 if (!partPos.equals(pos) && level.getBlockState(partPos).is(this)) {
                     level.removeBlock(partPos, false);
