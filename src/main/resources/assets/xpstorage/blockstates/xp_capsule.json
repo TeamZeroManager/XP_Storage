@@ -4,9 +4,6 @@
       "model": "xpstorage:block/xp_capsule"
     },
     "section=1": {
-      "model": "xpstorage:block/xp_capsule_middle"
-    },
-    "section=2": {
       "model": "xpstorage:block/xp_capsule_top"
     }
   }
