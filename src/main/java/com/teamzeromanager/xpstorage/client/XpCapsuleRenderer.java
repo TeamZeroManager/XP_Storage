@@ -12,7 +12,6 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
-import net.minecraft.world.phys.AABB;
 
 import java.text.NumberFormat;
 import java.util.Locale;
@@ -28,11 +27,6 @@ public class XpCapsuleRenderer implements BlockEntityRenderer<XpCapsuleBlockEnti
     private static final float MAX_Z = 12.0F / 16.0F;
 
     public XpCapsuleRenderer(BlockEntityRendererProvider.Context context) {
-    }
-
-    @Override
-    public AABB getRenderBoundingBox(XpCapsuleBlockEntity capsule) {
-        return new AABB(capsule.getBlockPos(), capsule.getBlockPos().offset(1, 2, 1));
     }
 
     @Override
